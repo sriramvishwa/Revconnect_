@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+
+<body class="animate-fade-in" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+
+    <div class="card glass" style="width: 100%; max-width: 500px; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Join RevConnect</h2>
+            <p style="color: var(--text-muted);">Empowering connections for everyone.</p>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="flex: 1;">
+                    <label
+                        style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-muted);">Username</label>
+                    <input type="text" th:field="*{username}" required class="glass"
+                        style="width: 100%; padding: 0.8rem; border-radius: 8px; color: white;">
+                </div>
+                <div style="flex: 1;">
+                    <label
+                        style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-muted);">Email</label>
+                    <input type="email" th:field="*{email}" required class="glass"
+                        style="width: 100%; padding: 0.8rem; border-radius: 8px; color: white;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label
+                    style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-muted);">Password</label>
+                <input type="password" th:field="*{password}" required class="glass"
+                    style="width: 100%; padding: 0.8rem; border-radius: 8px; color: white;">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-muted);">I am
+                    a...</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    <label style="cursor: pointer; position: relative;">
+                        <input type="radio" th:field="*{role}" value="PERSONAL" class="role-radio"
+                            style="position: absolute; opacity: 0;" checked>
+                        <div class="role-box"
+                            style="padding: 1rem 0.5rem; border: 1px solid var(--glass-border); border-radius: 12px; text-align: center; transition: all 0.3s;">
+                            <i class="fas fa-user"></i>
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem;">Personal</div>
+                        </div>
+                    </label>
+                    <label style="cursor: pointer; position: relative;">
+                        <input type="radio" th:field="*{role}" value="CREATOR" class="role-radio"
+                            style="position: absolute; opacity: 0;">
+                        <div class="role-box"
+                            style="padding: 1rem 0.5rem; border: 1px solid var(--glass-border); border-radius: 12px; text-align: center; transition: all 0.3s;">
+                            <i class="fas fa-magic"></i>
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem;">Creator</div>
+                        </div>
+                    </label>
+                    <label style="cursor: pointer; position: relative;">
+                        <input type="radio" th:field="*{role}" value="BUSINESS" class="role-radio"
+                            style="position: absolute; opacity: 0;">
+                        <div class="role-box"
+                            style="padding: 1rem 0.5rem; border: 1px solid var(--glass-border); border-radius: 12px; text-align: center; transition: all 0.3s;">
+                            <i class="fas fa-briefcase"></i>
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem;">Business</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <style>
+                .role-radio:checked+.role-box {
+                    background: var(--primary);
+                    border-color: var(--primary);
+                    transform: scale(1.05);
+                    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+                }
+            </style>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
+                Create Account
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted);">
+            Already have an account? <a th:href="@{/login}"
+                style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

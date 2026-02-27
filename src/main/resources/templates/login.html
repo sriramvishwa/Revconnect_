@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
+
+<body class="animate-fade-in" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+
+    <div class="card glass" style="width: 100%; max-width: 400px; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Welcome Back</h2>
+            <p style="color: var(--text-muted);">Sign in to your connection hub.</p>
+        </div>
+
+        <div th:if="${param.error}" class="card"
+            style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            Invalid username or password.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div style="margin-bottom: 1.5rem;">
+                <label
+                    style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-muted);">Username</label>
+                <input type="text" name="username" required class="glass"
+                    style="width: 100%; padding: 0.8rem; border-radius: 8px; color: white; outline: none;">
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label
+                    style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-muted);">Password</label>
+                <input type="password" name="password" required class="glass"
+                    style="width: 100%; padding: 0.8rem; border-radius: 8px; color: white; outline: none;">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
+                Sign In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account? <a th:href="@{/register}"
+                style="color: var(--primary); text-decoration: none; font-weight: 600;">Register Now</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

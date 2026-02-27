@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | RevConnect'">RevConnect</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script th:src="@{/js/main.js}" defer></script>
+</head>
+
+<body>
+
+    <nav th:fragment="navbar" class="navbar">
+        <div class="logo">
+            <a th:href="@{/feed}" style="font-size: 1.5rem; font-weight: 800; color: white; text-decoration: none;">
+                Rev<span style="color: var(--primary);">Connect</span>
+            </a>
+        </div>
+
+        <div class="search-bar" style="flex-grow: 1; margin: 0 3rem; max-width: 500px;">
+            <form th:action="@{/search}" method="get">
+                <input type="text" name="q" placeholder="Search users, #hashtags..."
+                    style="width: 100%; padding: 0.6rem 1.2rem; border-radius: 99px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; outline: none;">
+            </form>
+        </div>
+
+        <div class="nav-links">
+            <a th:href="@{/feed}"><i class="fas fa-home"></i> <span>Feed</span></a>
+
+            <!-- Role-based Analytics -->
+            <a th:if="${user != null && (user.role.name() == 'CREATOR' || user.role.name() == 'BUSINESS')}"
+                th:href="@{/analytics}"><i class="fas fa-chart-line"></i> <span>Analytics</span></a>
+
+            <!-- Business Page -->
+            <a th:if="${user != null && user.role.name() == 'BUSINESS'}" th:href="@{'/profile/' + ${user.username}}"><i
+                    class="fas fa-briefcase"></i> <span>Business
+                    Page</span></a>
+
+            <a th:href="@{/notifications}">
+                <i class="fas fa-bell"></i>
+                <span th:if="${unreadCount > 0}"
+                    style="background: var(--secondary); color: white; border-radius: 50%; padding: 0.1rem 0.4rem; font-size: 0.7rem; position: relative; top: -10px; left: -10px;">
+                    [[${unreadCount}]]
+                </span>
+            </a>
+
+            <div class="user-menu" th:if="${user != null}">
+                <a th:href="@{'/profile/' + ${user.username}}" class="btn btn-primary">
+                    <i class="fas fa-user-circle"></i> [[${user.username}]]
+                </a>
+            </div>
+        </div>
+    </nav>
+
+</body>
+
+</html>
