@@ -1,0 +1,20 @@
+# Maven
+target/
+
+# Logs
+*.log
+
+# Test output files
+*_output.txt
+test_report.txt
+
+# IDE
+.idea/
+*.iml
+
+# Upload folder
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
