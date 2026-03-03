@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Feed')}"></head>
+
+<style>
+  /* Post composer */
+  .composer-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .composer-box textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    min-height: 90px;
+    line-height: 1.6;
+    padding: 0;
+  }
+
+  .composer-box textarea:focus {
+    box-shadow: none;
+    border: none;
+  }
+
+  .composer-box textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  .composer-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1rem 0;
+  }
+
+  .composer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .composer-tool-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .composer-tool-btn:hover {
+    background: #f8f9fa;
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .media-preview {
+    display: none;
+    margin-top: 0.8rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-page);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+  }
+
+  .media-preview.visible {
+    display: flex;
+  }
+
+  .empty-error {
+    display: none;
+    color: #c53030;
+    font-size: 0.82rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Schedule section */
+  .schedule-section {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f1f3f5;
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--border-color);
+  }
+
+  .schedule-section.visible {
+    display: block;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.visible {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--radius-sm);
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-weight: 800;
+  }
+
+  /* Post card */
+  .post-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: border-color 0.2s;
+  }
+
+  .post-card:hover {
+    border-color: #ced4da;
+  }
+
+  .post-author-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .post-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .post-action-btn:hover {
+    background: #f8f9fa;
+    color: var(--text-primary);
+  }
+
+  .post-action-btn.liked {
+    color: #e63946;
+  }
+
+  /* Feed layout */
+  .feed-wrap {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .feed-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .feed-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .sidebar-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--card-shadow);
+    padding: 1.25rem;
+  }
+
+  .sidebar-card h4 {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .tip-item {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+
+  .tip-item:last-child {
+    border-bottom: none;
+  }
+
+  .tip-item i {
+    color: var(--primary);
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+  }
+
+  /* Post media */
+  .post-media {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    margin: 1rem 0;
+    max-height: 500px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+  }
+
+  @media (max-width: 900px) {
+    .feed-sidebar {
+      display: none;
+    }
+
+    .feed-wrap {
+      max-width: 700px;
+    }
+  }
+</style>
+
+<body class="animate-fade-in">
+  <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+  <div class="feed-wrap">
+
+    <!-- ── Main Feed ── -->
+    <main class="feed-main">
+
+      <!-- Create Post Composer -->
+      <div class="composer-box">
+        <form id="postForm" th:action="@{/post}" method="post" enctype="multipart/form-data"
+          onsubmit="return validatePost()">
+          <input type="file" id="mediaFileInput" name="media" accept="image/*,video/*" style="display:none"
+            onchange="showMediaPreview(this, 'mediaFileName', 'mediaPreview')">
+
+          <textarea id="postContent" name="content" placeholder="Share an update with your network..."></textarea>
+
+          <div class="media-preview" id="mediaPreview">
+            <i class="fas fa-paperclip" style="color:var(--primary);"></i>
+            <span id="mediaFileName">No file</span>
+            <button type="button" onclick="clearMedia('mediaFileInput', 'mediaPreview')"
+              style="background:none;border:none;color:#c53030;cursor:pointer;margin-left:auto;font-size:0.8rem;">✕
+              Remove</button>
+          </div>
+
+          <div class="schedule-section" id="scheduleSection">
+            <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">
+              <i class="fas fa-clock"></i> Schedule Post
+            </div>
+            <input type="datetime-local" name="scheduledAt" id="scheduledAtInput"
+              style="width: 100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:4px; font-family: inherit;">
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.5rem 0 0;">Post will be hidden until
+              the selected time.</p>
+          </div>
+
+          <span class="empty-error" id="emptyError"><i class="fas fa-exclamation-circle"></i> Please write something
+            before posting.</span>
+
+          <hr class="composer-divider">
+          <div class="composer-actions">
+            <div style="display:flex;gap:0.5rem;">
+              <button type="button" class="composer-tool-btn"
+                onclick="document.getElementById('mediaFileInput').click()" title="Add photo or video">
+                <i class="fas fa-image"></i> Photo/Video
+              </button>
+              <button type="button" class="composer-tool-btn" onclick="toggleScheduleUI()" title="Schedule post">
+                <i class="fas fa-calendar-alt"></i> Schedule
+              </button>
+              <button type="button" class="composer-tool-btn" onclick="insertHashtag()" title="Add hashtag">
+                <i class="fas fa-hashtag"></i>
+              </button>
+            </div>
+            <button type="submit" id="submitPostBtn" class="btn btn-primary">
+              Post Update
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Posts -->
+      <div th:each="post : ${posts}" class="post-card animate-fade-in">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="display:flex; gap:0.85rem; align-items:flex-start;">
+            <div class="post-author-avatar">
+              [[${#strings.substring(post.author.username,0,1).toUpperCase()}]]
+            </div>
+            <div>
+              <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                <a th:href="@{'/profile/' + ${post.author.username}}"
+                  style="color:var(--text-primary); font-weight:700; text-decoration:none; font-size:1rem;"
+                  th:text="${post.author.username}">Username</a>
+                <span th:if="${post.author.role.name() == 'CREATOR'}" class="badge badge-creator">Creator</span>
+                <span th:if="${post.author.role.name() == 'BUSINESS'}" class="badge badge-business">Business</span>
+              </div>
+              <div style="color:var(--text-secondary); font-size:0.8rem; margin-top:0.15rem;"
+                th:text="${#temporals.format(post.createdAt, 'MMM dd, HH:mm')}">Date</div>
+            </div>
+          </div>
+
+          <div th:if="${user != null && user.username == post.author.username}" style="display: flex; gap: 0.4rem;">
+            <button type="button" th:data-post-id="${post.id}" th:data-post-content="${post.content}"
+              onclick="openEditModal(this.getAttribute('data-post-id'), this.getAttribute('data-post-content'))"
+              style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0.4rem 0.6rem; cursor:pointer; font-size:0.8rem; transition: all 0.2s;"
+              title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+            <form th:action="@{'/post/delete/' + ${post.id}}" method="post" style="display:inline;">
+              <button type="submit"
+                style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0.4rem 0.6rem; cursor:pointer; font-size:0.8rem; transition: all 0.2s;"
+                title="Delete" onclick="return confirm('Delete this post?')">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Repost attribution -->
+        <div th:if="${post.originalPost != null}"
+          style="margin:1rem 0; padding:1rem; border-left:4px solid var(--primary); background:#f8f9fa; border-radius:0 var(--radius-sm) var(--radius-sm) 0;">
+          <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">
+            <i class="fas fa-retweet" style="color:var(--primary); margin-right:0.4rem;"></i>
+            Reposted from <a th:href="@{'/profile/'+${post.originalPost.author.username}}"
+              style="color:var(--primary); text-decoration:none; font-weight:600;"
+              th:text="${post.originalPost.author.username}">Author</a>
+          </div>
+          <div style="color:var(--text-primary); font-size:0.95rem;" th:text="${post.originalPost.content}">Original
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div style="margin:1rem 0; line-height:1.6; font-size:1rem; color:var(--text-primary); white-space:pre-wrap;"
+          th:text="${post.content}">
+          Content</div>
+
+        <!-- Media -->
+        <div th:if="${post.mediaUrl != null && !post.mediaUrl.isEmpty()}">
+          <img th:if="${!post.mediaUrl.endsWith('.mp4') && !post.mediaUrl.endsWith('.webm')}" th:src="${post.mediaUrl}"
+            alt="Post media" class="post-media">
+          <video th:if="${post.mediaUrl.endsWith('.mp4') || post.mediaUrl.endsWith('.webm')}" th:src="${post.mediaUrl}"
+            controls class="post-media"></video>
+        </div>
+
+        <!-- CTA -->
+        <div th:if="${post.ctaType != null && post.ctaType.name() != 'NONE'}" style="margin: 1rem 0;">
+          <a th:href="${post.ctaLink}" class="btn btn-primary" target="_blank"
+            style="font-size:0.85rem; padding: 0.5rem 1rem;">
+            [[${post.ctaType}]] <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
+
+        <!-- Post actions -->
+        <div
+          style="display:flex; gap:0.5rem; border-top:1px solid var(--border-color); padding-top:0.75rem; flex-wrap:wrap;">
+          <button class="post-action-btn" th:onclick="|likePost(${post.id}, ${user.id}, this)|">
+            <i class="far fa-heart"></i> <span th:text="${post.likeCount}">0</span>
+          </button>
+          <button class="post-action-btn" th:id="'cmt-btn-' + ${post.id}"
+            th:onclick="|toggleComments(${post.id}, this)|">
+            <i class="far fa-comment"></i> <span th:id="'cmt-count-' + ${post.id}"
+              th:text="${post.commentCount}">0</span>
+          </button>
+          <form th:action="@{/post/repost}" method="post" style="display:inline;">
+            <input type="hidden" name="originalPostId" th:value="${post.id}">
+            <button type="submit" class="post-action-btn">
+              <i class="fas fa-retweet"></i> <span th:text="${post.shareCount}">0</span>
+            </button>
+          </form>
+          <button class="post-action-btn" onclick="copyLink(this)" style="margin-left:auto;" title="Copy link">
+            <i class="fas fa-share-nodes"></i>
+          </button>
+        </div>
+
+        <!-- ── Inline comment panel ── -->
+        <div th:id="'comments-' + ${post.id}"
+          style="display:none; margin-top:1rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+          <div th:id="'comment-list-' + ${post.id}"
+            style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem;"></div>
+          <div style="display:flex; gap:0.75rem; align-items:flex-start;">
+            <textarea th:id="'cmt-input-' + ${post.id}" placeholder="Add a comment..." rows="1"
+              style="flex:1; padding:0.6rem 0.8rem; font-size:0.9rem;"
+              th:onkeydown="|if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();postComment(${post.id});}|"></textarea>
+            <button class="btn btn-primary" th:onclick="|postComment(${post.id})|"
+              style="padding:0.6rem 1rem; flex-shrink:0;">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div th:if="${#lists.isEmpty(posts)}" class="card" style="text-align:center; padding:4rem;">
+        <i class="fas fa-newspaper"
+          style="font-size:3rem; color:var(--text-secondary); opacity:0.2; display:block; margin-bottom:1.5rem;"></i>
+        <h3 style="color:var(--text-primary); font-size:1.2rem; margin:0;">No updates yet</h3>
+        <p style="color:var(--text-secondary); font-size:0.95rem; margin-top:0.5rem;">Follow people to see what they're
+          sharing.</p>
+        <a href="/search?q=" class="btn btn-primary" style="margin-top:1.5rem;">
+          Discover people
+        </a>
+      </div>
+
+      <!-- Edit Post Modal -->
+      <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Edit Post</h3>
+            <button type="button" onclick="closeEditModal()"
+              style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-secondary);">&times;</button>
+          </div>
+          <form id="editForm" method="post">
+            <textarea name="content" id="editPostContent" class="input-field"
+              style="width:100%; min-height:120px; font-family:inherit; resize:vertical; padding:1rem; box-sizing:border-box; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1.5rem; outline:none;"
+              placeholder="What's on your mind?"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+              <button type="button" onclick="closeEditModal()" class="btn btn-outline">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- ── Sidebar ── -->
+    <aside class="feed-sidebar">
+
+      <!-- PERSONAL sidebar -->
+      <div th:if="${user.role.name() == 'PERSONAL'}" class="sidebar-card">
+        <h4><i class="fas fa-user-friends"></i> Network</h4>
+        <div class="tip-item"><i class="fas fa-plus"></i> Connect with your colleagues</div>
+        <div class="tip-item"><i class="fas fa-plus"></i> Find people in your industry</div>
+        <div class="tip-item"><i class="fas fa-plus"></i> Share your thoughts today</div>
+        <a th:href="@{/network}" class="btn btn-outline"
+          style="width:100%; justify-content:center; margin-top:1.25rem;">
+          My connections
+        </a>
+      </div>
+
+      <!-- CREATOR sidebar -->
+      <div th:if="${user.role.name() == 'CREATOR'}" class="sidebar-card">
+        <h4><i class="fas fa-magic"></i> Creator Tools</h4>
+        <div class="tip-item"><i class="fas fa-lightbulb"></i> Use hashtags for better visibility</div>
+        <div class="tip-item"><i class="fas fa-lightbulb"></i> Post during peak hours</div>
+        <div class="tip-item"><i class="fas fa-lightbulb"></i> Reply to your comments</div>
+        <a th:href="@{/analytics}" class="btn btn-primary"
+          style="width:100%; justify-content:center; margin-top:1.25rem;">
+          Dashboard
+        </a>
+      </div>
+
+      <!-- BUSINESS sidebar -->
+      <div th:if="${user.role.name() == 'BUSINESS'}" class="sidebar-card">
+        <h4><i class="fas fa-briefcase"></i> Insights</h4>
+        <div class="tip-item"><i class="fas fa-chart-line"></i> Check your post engagement</div>
+        <div class="tip-item"><i class="fas fa-chart-line"></i> Update your business details</div>
+        <div class="tip-item"><i class="fas fa-chart-line"></i> View new connections</div>
+        <a th:href="@{/analytics}" class="btn btn-primary"
+          style="width:100%; justify-content:center; margin-top:1.25rem;">
+          Business Center
+        </a>
+      </div>
+
+      <!-- Trending -->
+      <div class="sidebar-card">
+        <h4><i class="fas fa-hashtag"></i> Topics</h4>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <a href="/search?q=%23RevConnect"
+            style="color:var(--primary); text-decoration:none; font-size:0.9rem; font-weight:600;">#RevConnect</a>
+          <a href="/search?q=%23CareerGrowth"
+            style="color:var(--primary); text-decoration:none; font-size:0.9rem; font-weight:600;">#CareerGrowth</a>
+          <a href="/search?q=%23Networking"
+            style="color:var(--primary); text-decoration:none; font-size:0.9rem; font-weight:600;">#Networking</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ── Post validation (empty guard)
+    function validatePost() {
+      const txt = document.getElementById('postContent');
+      const err = document.getElementById('emptyError');
+      if (!txt.value.trim()) {
+        err.style.display = 'block';
+        txt.focus();
+        return false;
+      }
+      err.style.display = 'none';
+      return true;
+    }
+
+    // ── Gallery — show selected file name
+    function showMediaPreview(input, nameId, previewId) {
+      const preview = document.getElementById(previewId);
+      const name = document.getElementById(nameId);
+      if (input.files && input.files[0]) {
+        name.textContent = input.files[0].name;
+        preview.classList.add('visible');
+      }
+    }
+    function clearMedia(inputId, previewId) {
+      document.getElementById(inputId).value = '';
+      document.getElementById(previewId).classList.remove('visible');
+    }
+
+    // ── Scheduling
+    let _isScheduling = false;
+    function toggleScheduleUI() {
+      const section = document.getElementById('scheduleSection');
+      const form = document.getElementById('postForm');
+      const btn = document.getElementById('submitPostBtn');
+      _isScheduling = !_isScheduling;
+
+      if (_isScheduling) {
+        section.classList.add('visible');
+        form.action = '/post/schedule';
+        btn.textContent = 'Schedule Post';
+      } else {
+        section.classList.remove('visible');
+        form.action = '/post';
+        btn.textContent = 'Post Update';
+        document.getElementById('scheduledAtInput').value = '';
+      }
+    }
+
+    // ── Editing
+    function openEditModal(postId, content) {
+      const modal = document.getElementById('editModal');
+      const form = document.getElementById('editForm');
+      const ta = document.getElementById('editPostContent');
+
+      form.action = '/post/edit/' + postId;
+      ta.value = content;
+      modal.classList.add('visible');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('visible');
+    }
+
+    // ── Hashtag — insert # at cursor
+    function insertHashtag() {
+      const ta = document.getElementById('postContent');
+      ta.focus();
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const val = ta.value;
+      // Add a space before # if not at start and previous char isn't a space
+      const prefix = (start > 0 && val[start - 1] !== ' ') ? ' #' : '#';
+      ta.value = val.substring(0, start) + prefix + val.substring(end);
+      const pos = start + prefix.length;
+      ta.setSelectionRange(pos, pos);
+    }
+
+    // ── Like
+    function likePost(postId, userId, btn) {
+      fetch(`/api/likes/${postId}/${userId}`, { method: 'POST' })
+        .then(r => r.text())
+        .then(() => {
+          const count = btn.querySelector('span');
+          const icon = btn.querySelector('i');
+          if (btn.classList.contains('liked')) {
+            btn.classList.remove('liked');
+            icon.className = 'far fa-heart';
+            count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+          } else {
+            btn.classList.add('liked');
+            icon.className = 'fas fa-heart';
+            count.textContent = parseInt(count.textContent) + 1;
+          }
+        });
+    }
+
+    // ── Copy link
+    function copyLink(btn) {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => btn.innerHTML = '<i class="fas fa-share-nodes"></i>', 1500);
+      });
+    }
+    // ── Comments ──────────────────────────────────────────────────────
+    const _commentLoaded = {};
+
+    function toggleComments(postId, btn) {
+      const panel = document.getElementById('comments-' + postId);
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : '';
+      btn.querySelector('i').className = isOpen ? 'far fa-comment' : 'fas fa-comment';
+      if (!isOpen && !_commentLoaded[postId]) {
+        _commentLoaded[postId] = true;
+        loadComments(postId);
+      }
+    }
+
+    function loadComments(postId) {
+      fetch(`/comment/${postId}/list`)
+        .then(r => r.json())
+        .then(comments => {
+          const list = document.getElementById('comment-list-' + postId);
+          if (!list) return;
+          list.innerHTML = '';
+          if (comments.length === 0) {
+            list.innerHTML = '<div style="color:var(--text-muted);font-size:0.82rem;text-align:center;">No comments yet – be the first!</div>';
+            return;
+          }
+          comments.forEach(c => {
+            const initials = c.author.charAt(0).toUpperCase();
+            const avatar = c.avatarUrl
+              ? `<img src="${c.avatarUrl}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">`
+              : `<div style="width:32px;height:32px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">${initials}</div>`;
+            list.insertAdjacentHTML('beforeend', `
+              <div style="display:flex;gap:0.7rem;align-items:flex-start;" id="c-${c.id}">
+                ${avatar}
+                <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:0 10px 10px 10px;padding:0.55rem 0.8rem;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
+                    <span style="font-size:0.8rem;font-weight:700;">${c.author}</span>
+                    <span style="font-size:0.72rem;color:var(--text-muted);">${c.time}</span>
+                  </div>
+                  <div style="font-size:0.88rem;margin-top:0.3rem;word-break:break-word;">${escHtml(c.content)}</div>
+                </div>
+              </div>`);
+          });
+        });
+    }
+
+    function postComment(postId) {
+      const input = document.getElementById('cmt-input-' + postId);
+      const content = input.value.trim();
+      if (!content) return;
+
+      const fd = new FormData();
+      fd.append('content', content);
+
+      fetch(`/comment/add/${postId}`, { method: 'POST', body: fd })
+        .then(() => {
+          input.value = '';
+          // Bump count badge
+          const badge = document.getElementById('cmt-count-' + postId);
+          if (badge) badge.textContent = parseInt(badge.textContent || '0') + 1;
+          // Reload comment list
+          _commentLoaded[postId] = false;
+          loadComments(postId);
+          _commentLoaded[postId] = true;
+        });
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+
+</html>

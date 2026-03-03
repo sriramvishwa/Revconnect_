@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+
+<style>
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        background-color: var(--bg-page);
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 1rem;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 450px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 2.5rem;
+    }
+
+    .auth-card h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        text-align: center;
+    }
+
+    .auth-card .subtext {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+    }
+
+    .btn-full {
+        width: 100%;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .error-box {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        color: #c53030;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-sm);
+        margin-bottom: 1.5rem;
+        font-size: 0.88rem;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .brand-link {
+        display: block;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-decoration: none;
+    }
+</style>
+
+<body class="animate-fade-in">
+
+    <div class="auth-card">
+        <a href="/" class="brand-link">RevConnect</a>
+
+        <h2>Create your account</h2>
+        <p class="subtext">Join RevConnect — completely free.</p>
+
+        <div th:if="${error}" class="error-box">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}">Error</span>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" th:field="*{username}" required placeholder="your_username">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" th:field="*{email}" required placeholder="you@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" th:field="*{password}" required
+                    placeholder="Create a strong password">
+            </div>
+
+            <div class="form-group">
+                <label for="role">I am a...</label>
+                <select id="role" th:field="*{role}" required>
+                    <option value="PERSONAL">Personal</option>
+                    <option value="CREATOR">Creator</option>
+                    <option value="BUSINESS">Business</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a th:href="@{/login}">Sign In</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

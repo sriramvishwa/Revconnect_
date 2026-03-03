@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Private Profile')}"></head>
+
+<style>
+    .private-container {
+        max-width: 600px;
+        margin: 4rem auto;
+        padding: 0 1.5rem;
+        text-align: center;
+    }
+
+    .locked-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 3rem 2rem;
+    }
+
+    .locked-icon {
+        font-size: 3.5rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+
+    .profile-header-stub {
+        margin-bottom: 2rem;
+    }
+
+    .stub-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stub-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stub-username {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .restricted-msg {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .connect-prompt {
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+</style>
+
+<body class="animate-fade-in">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="private-container">
+        <div class="locked-card animate-fade-in">
+            <div class="profile-header-stub">
+                <div th:if="${profileUser.profilePictureUrl == null || profileUser.profilePictureUrl.isEmpty()}"
+                    class="stub-avatar">
+                    [[${#strings.substring(profileUser.username,0,1).toUpperCase()}]]
+                </div>
+                <img th:if="${profileUser.profilePictureUrl != null && !profileUser.profilePictureUrl.isEmpty()}"
+                    th:src="${profileUser.profilePictureUrl}" class="stub-avatar" style="object-fit: cover;">
+
+                <div class="stub-name"
+                    th:text="${profileUser.firstName + ' ' + (profileUser.lastName != null ? profileUser.lastName : '')}">
+                    Name</div>
+                <div class="stub-username">@<span th:text="${profileUser.username}">username</span></div>
+            </div>
+
+            <div class="locked-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <h3>This Profile is Private</h3>
+            <p class="restricted-msg">
+                Only connections can see [[${profileUser.username}]]'s posts and full profile details.
+                Send a connection request to see their activity.
+            </p>
+
+            <div class="connect-prompt" th:if="${currentUser != null}">
+                <form th:action="@{'/connections/send/' + ${profileUser.id}}" method="post">
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-user-plus"></i> Connect with [[${profileUser.username}]]
+                    </button>
+                </form>
+            </div>
+            <div class="connect-prompt" th:if="${currentUser == null}">
+                <a th:href="@{/login}" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Log in to connect
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a th:href="@{/feed}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Feed
+            </a>
+        </div>
+    </div>
+
+</body>
+
+</html>

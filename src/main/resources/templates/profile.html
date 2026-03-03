@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head(${profileUser.username + ' – RevConnect'})}"></head>
+
+<style>
+    /* Profile Cover section */
+    .profile-cover {
+        height: 220px;
+        background: var(--primary);
+        /* Solid Deep Teal - No gradients */
+        position: relative;
+    }
+
+    .profile-header-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 0;
+        margin-top: -60px;
+        position: relative;
+        z-index: 10;
+        overflow: hidden;
+    }
+
+    .header-content {
+        padding: 1.5rem 2.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        margin-top: -100px;
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: var(--bg-card);
+        border: 4px solid var(--bg-card);
+        object-fit: cover;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+    }
+
+    .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: white;
+        border: 4px solid var(--bg-card);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+        text-transform: uppercase;
+        letter-spacing: -1px;
+    }
+
+    .profile-info {
+        flex: 1;
+        margin-left: 1.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .profile-info h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .profile-info .username {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: left;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Tabs */
+    .profile-tabs {
+        display: flex;
+        padding: 0 2.5rem;
+        border-top: 1px solid var(--border-color);
+        background: #fcfcfc;
+    }
+
+    .tab-link {
+        padding: 1.2rem 1.5rem;
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .tab-link:hover {
+        color: var(--primary);
+    }
+
+    .tab-link.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    /* Content Layout */
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto 3rem;
+        padding: 0 1.5rem;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .sticky-side {
+        position: sticky;
+        top: 100px;
+    }
+
+    .info-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-secondary);
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        align-items: flex-start;
+    }
+
+    .info-row i {
+        color: var(--text-secondary);
+        width: 16px;
+        text-align: center;
+        margin-top: 0.2rem;
+    }
+
+    /* Buttons Override */
+    .btn-profile-action {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 5rem;
+        }
+
+        .profile-avatar-wrapper {
+            margin-top: -110px;
+        }
+
+        .profile-info {
+            margin-left: 0;
+            margin-top: 1rem;
+        }
+
+        .header-actions {
+            margin-top: 1.5rem;
+        }
+
+        .profile-stats {
+            justify-content: center;
+        }
+    }
+
+    /* Post card profile reuse */
+    .post-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 1.5rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .post-author-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .post-action-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        padding: 0.5rem 0.8rem;
+        cursor: pointer;
+    }
+
+    .post-media {
+        width: 100%;
+        border-radius: var(--radius-sm);
+        margin: 1rem 0;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.visible {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--bg-card);
+        width: 100%;
+        max-width: 500px;
+        border-radius: var(--radius-sm);
+        padding: 2rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-weight: 800;
+    }
+</style>
+
+<body class="animate-fade-in">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="profile-cover"></div>
+
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header-card animate-fade-in">
+            <div class="header-content">
+                <div style="display:flex; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+                    <div class="profile-avatar-wrapper">
+                        <img th:if="${profileUser.profilePictureUrl != null && !profileUser.profilePictureUrl.isEmpty()}"
+                            th:src="${profileUser.profilePictureUrl}" class="profile-avatar" alt="Profile Picture">
+                        <div th:unless="${profileUser.profilePictureUrl != null && !profileUser.profilePictureUrl.isEmpty()}"
+                            class="avatar-placeholder">
+                            [[${#strings.substring(profileUser.username, 0, 1).toUpperCase()}]]
+                        </div>
+                    </div>
+
+                    <div class="profile-info">
+                        <h1>
+                            [[${profileUser.username}]]
+                            <span th:if="${profileUser.role.name() == 'CREATOR'}"
+                                class="badge badge-creator">Creator</span>
+                            <span th:if="${profileUser.role.name() == 'BUSINESS'}"
+                                class="badge badge-business">Business</span>
+                        </h1>
+                        <div class="username" th:text="${profileUser.email}">email@example.com</div>
+
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" th:text="${profileUser.followersCount}">0</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" th:text="${profileUser.followingCount}">0</span>
+                                <span class="stat-label">Following</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" th:text="${posts.size()}">0</span>
+                                <span class="stat-label">Posts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div th:if="${user != null && user.username == profileUser.username}">
+                        <a th:href="@{/profile/edit}" class="btn btn-outline btn-profile-action">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    </div>
+                    <div th:if="${user != null && user.username != profileUser.username}">
+                        <div style="display:flex; gap:0.75rem;">
+                            <a th:href="@{'/messages/' + ${profileUser.id}}" class="btn btn-outline btn-profile-action">
+                                <i class="fas fa-envelope"></i> Message
+                            </a>
+                            <form th:action="@{'/network/follow/' + ${profileUser.id}}" method="post" style="margin:0;">
+                                <button type="submit" class="btn btn-primary btn-profile-action"
+                                    th:text="${isFollowing ? 'Unfollow' : 'Follow'}">
+                                    Follow
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-tabs">
+                <a th:href="@{'/profile/' + ${profileUser.username}}"
+                    th:classappend="${activeTab == 'feed'} ? ' active' : ''" class="tab-link">Feed</a>
+                <a th:href="@{'/profile/' + ${profileUser.username} + '/about'}"
+                    th:classappend="${activeTab == 'about'} ? ' active' : ''" class="tab-link">About</a>
+                <a th:href="@{'/profile/' + ${profileUser.username} + '/media'}"
+                    th:classappend="${activeTab == 'media'} ? ' active' : ''" class="tab-link">Media</a>
+            </div>
+        </div>
+
+        <!-- Layout Grid -->
+        <div class="profile-grid">
+            <aside class="sticky-side">
+                <div class="info-card animate-fade-in">
+                    <div class="info-title">About</div>
+                    <div class="info-row" style="color:var(--text-primary); font-size:1rem; line-height:1.6;">
+                        <span th:text="${profileUser.bio ?: 'No bio available...'}">User bio goes here.</span>
+                    </div>
+
+                    <hr style="border:none; border-top:1px solid var(--border-color); margin:1.5rem 0;">
+
+                    <div class="info-row" th:if="${profileUser.location}">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span th:text="${profileUser.location}">Location</span>
+                    </div>
+                    <div class="info-row" th:if="${profileUser.website}">
+                        <i class="fas fa-link"></i>
+                        <a th:href="${profileUser.website}" target="_blank"
+                            style="color:var(--primary); text-decoration:none;"
+                            th:text="${profileUser.website}">Website</a>
+                    </div>
+                </div>
+
+                <div class="info-card animate-fade-in">
+                    <div class="info-title">Connections</div>
+                    <div style="display:flex; gap:2rem; padding:0.5rem 0;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.5rem; font-weight:800; color:var(--text-primary);"
+                                th:text="${profileUser.followersCount}">0</div>
+                            <div
+                                style="font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">
+                                Followers</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.5rem; font-weight:800; color:var(--text-primary);"
+                                th:text="${profileUser.followingCount}">0</div>
+                            <div
+                                style="font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">
+                                Following</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main>
+                <!-- FEED TAB -->
+                <div th:if="${activeTab == 'feed'}">
+                    <div th:each="post : ${posts}" class="post-card animate-fade-in">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="display:flex; gap:0.85rem;">
+                                <div class="post-author-avatar">
+                                    [[${#strings.substring(post.author.username,0,1).toUpperCase()}]]
+                                </div>
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                                        <span style="color:var(--text-primary); font-weight:700;"
+                                            th:text="${post.author.username}">Username</span>
+                                    </div>
+                                    <div style="color:var(--text-secondary); font-size:0.8rem;"
+                                        th:text="${#temporals.format(post.createdAt, 'MMM dd, HH:mm')}">Date</div>
+                                </div>
+                            </div>
+                            <div th:if="${user != null && user.username == post.author.username}"
+                                style="display: flex; gap: 0.4rem;">
+                                <button type="button" th:data-post-id="${post.id}"
+                                    th:data-post-content="${post.content}"
+                                    onclick="openEditModal(this.getAttribute('data-post-id'), this.getAttribute('data-post-content'))"
+                                    style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0.4rem 0.6rem; cursor:pointer; font-size:0.8rem; transition: all 0.2s;"
+                                    title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form th:action="@{'/post/delete/' + ${post.id}}" method="post" style="display:inline;">
+                                    <button type="submit"
+                                        style="background:transparent; color:var(--text-secondary); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0.4rem 0.6rem; cursor:pointer; font-size:0.8rem; transition: all 0.2s;"
+                                        title="Delete" onclick="return confirm('Delete this post?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div style="margin:1rem 0; line-height:1.6; color:var(--text-primary); white-space:pre-wrap;"
+                            th:text="${post.content}">Content</div>
+
+                        <div th:if="${post.mediaUrl != null && !post.mediaUrl.isEmpty()}">
+                            <img th:if="${!post.mediaUrl.endsWith('.mp4')}" th:src="${post.mediaUrl}" alt=""
+                                class="post-media">
+                            <video th:if="${post.mediaUrl.endsWith('.mp4')}" th:src="${post.mediaUrl}" controls
+                                class="post-media"></video>
+                        </div>
+
+                        <div
+                            style="display:flex; gap:0.5rem; border-top:1px solid var(--border-color); padding-top:0.75rem;">
+                            <button class="post-action-btn"><i class="far fa-heart"></i> [[${post.likeCount}]]</button>
+                            <button class="post-action-btn"><i class="far fa-comment"></i>
+                                [[${post.commentCount}]]</button>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(posts)}" class="card" style="text-align:center; padding:4rem;">
+                        <i class="fas fa-pencil-alt"
+                            style="font-size:3rem; color:var(--text-secondary); opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+                        <h3 style="color:var(--text-primary); margin:0;">No posts yet</h3>
+                    </div>
+                </div>
+
+                <!-- ABOUT TAB -->
+                <div th:if="${activeTab == 'about'}" class="info-card animate-fade-in">
+                    <div class="info-title"><i class="fas fa-user-circle"></i> About</div>
+                    <div style="color:var(--text-primary); line-height:1.7; margin-bottom:1.5rem;"
+                        th:text="${profileUser.bio ?: 'No bio available.'}">Bio</div>
+                    <hr style="border:none; border-top:1px solid var(--border-color); margin:1.2rem 0;">
+                    <div th:if="${profileUser.location}" class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span th:text="${profileUser.location}">Location</span>
+                    </div>
+                    <div th:if="${profileUser.website}" class="info-row">
+                        <i class="fas fa-link"></i>
+                        <a th:href="${profileUser.website}" target="_blank"
+                            style="color:var(--primary); text-decoration:none;"
+                            th:text="${profileUser.website}">Website</a>
+                    </div>
+                    <div th:if="${profileUser.category}" class="info-row">
+                        <i class="fas fa-tag"></i>
+                        <span th:text="${profileUser.category}">Category</span>
+                    </div>
+                    <div th:if="${profileUser.businessName}" class="info-row">
+                        <i class="fas fa-building"></i>
+                        <span th:text="${profileUser.businessName}">Business Name</span>
+                    </div>
+                    <div th:if="${profileUser.industry}" class="info-row">
+                        <i class="fas fa-industry"></i>
+                        <span th:text="${profileUser.industry}">Industry</span>
+                    </div>
+                    <div th:if="${profileUser.contactEmail}" class="info-row">
+                        <i class="fas fa-envelope"></i>
+                        <span th:text="${profileUser.contactEmail}">Contact Email</span>
+                    </div>
+                    <div th:if="${!profileUser.location && !profileUser.website && !profileUser.bio && !profileUser.category}"
+                        style="color:var(--text-secondary); font-size:0.9rem; text-align:center; padding:2rem;">
+                        No additional information available.
+                    </div>
+                </div>
+
+                <!-- MEDIA TAB -->
+                <div th:if="${activeTab == 'media'}">
+                    <div th:if="${!#lists.isEmpty(mediaPosts)}"
+                        style="display:grid; grid-template-columns: repeat(3,1fr); gap:0.75rem;">
+                        <div th:each="post : ${mediaPosts}"
+                            style="aspect-ratio:1/1; overflow:hidden; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                            <a th:href="@{'/profile/' + ${profileUser.username}}">
+                                <img th:if="${!post.mediaUrl.endsWith('.mp4')}" th:src="${post.mediaUrl}"
+                                    style="width:100%; height:100%; object-fit:cover;" alt="Media">
+                                <video th:if="${post.mediaUrl.endsWith('.mp4')}" th:src="${post.mediaUrl}"
+                                    style="width:100%; height:100%; object-fit:cover;"></video>
+                            </a>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(mediaPosts)}" class="card" style="text-align:center; padding:4rem;">
+                        <i class="fas fa-image"
+                            style="font-size:3rem; color:var(--text-secondary); opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+                        <h3 style="color:var(--text-primary); margin:0;">No media posts yet</h3>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Post</h3>
+                <button type="button" onclick="closeEditModal()"
+                    style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-secondary);">&times;</button>
+            </div>
+            <form id="editForm" method="post">
+                <textarea name="content" id="editPostContent" class="input-field"
+                    style="width:100%; min-height:120px; font-family:inherit; resize:vertical; padding:1rem; box-sizing:border-box; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1.5rem; outline:none;"
+                    placeholder="What's on your mind?"></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(postId, content) {
+            const modal = document.getElementById('editModal');
+            const form = document.getElementById('editForm');
+            const ta = document.getElementById('editPostContent');
+
+            form.action = '/post/edit/' + postId;
+            ta.value = content;
+            modal.classList.add('visible');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('visible');
+        }
+    </script>
+</body>
+
+</html>

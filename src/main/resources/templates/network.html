@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('My Network')}"></head>
+
+<style>
+  .network-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Tabs */
+  .network-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    background: var(--bg-card);
+    padding: 0 1rem;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--card-shadow);
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tab-btn:hover {
+    color: var(--primary);
+  }
+
+  .tab-btn.active {
+    color: var(--primary);
+  }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 3px 3px 0 0;
+  }
+
+  .tab-badge {
+    background: var(--primary);
+    color: white;
+    border-radius: 99px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  /* User Cards */
+  .user-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s;
+  }
+
+  .user-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+
+  .user-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+  }
+
+  .user-info {
+    flex: 1;
+    margin-left: 1rem;
+  }
+
+  .user-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .user-name:hover {
+    color: var(--primary);
+  }
+
+  .user-meta {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 0.2rem;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .btn-action {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-primary-action {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary-action:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-outline-action {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+  }
+
+  .btn-outline-action:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-danger-action {
+    background: #fff5f5;
+    border-color: #feb2b2;
+    color: #c53030;
+  }
+
+  .btn-danger-action:hover {
+    background: #fed7d7;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+  }
+
+  .section-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+
+  /* Toast styling */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<body class="animate-fade-in">
+  <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+  <div class="network-container">
+    <div style="margin-bottom: 2.5rem;">
+      <h1 style="margin:0; font-size:1.8rem; font-weight:800; color:var(--text-primary);">Network Management</h1>
+      <p style="color:var(--text-secondary); margin:0.4rem 0 0;">Manage your connections and discover new people.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="network-tabs">
+      <button class="tab-btn active" onclick="switchTab('connections', this)">
+        <i class="fas fa-handshake"></i> Connections
+        <span class="tab-badge" th:if="${#lists.size(connections) > 0}" th:text="${#lists.size(connections)}"></span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('followers', this)">
+        <i class="fas fa-users"></i> Followers
+        <span class="tab-badge" th:if="${#lists.size(followers) > 0}" th:text="${#lists.size(followers)}"></span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('following', this)">
+        <i class="fas fa-user-check"></i> Following
+        <span class="tab-badge" th:if="${#lists.size(following) > 0}" th:text="${#lists.size(following)}"></span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('pending', this)">
+        <i class="fas fa-clock"></i> Pending
+        <span class="tab-badge" th:if="${#lists.size(pendingRequests) > 0}"
+          th:text="${#lists.size(pendingRequests)}"></span>
+      </button>
+    </div>
+
+    <!-- TAB: Connections -->
+    <div id="tab-connections" class="tab-panel active">
+      <div class="section-header">
+        <h3 th:text="${#lists.size(connections)} + ' CONNECTIONS'"></h3>
+      </div>
+      <div th:if="${#lists.isEmpty(connections)}" class="empty-state">
+        <i class="fas fa-handshake" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+        <p>No connections yet. Start connecting with others!</p>
+      </div>
+      <div th:each="conn : ${connections}" class="user-card animate-fade-in">
+        <div style="display:flex; align-items:center; flex:1; gap:1rem;">
+          <div class="user-avatar" th:text="${#strings.substring(conn.username,0,1).toUpperCase()}">U</div>
+          <div class="user-info">
+            <a th:href="@{'/profile/' + ${conn.username}}" class="user-name" th:text="${conn.username}">Username</a>
+            <div class="user-meta" th:text="${conn.role}">Role</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a th:href="@{'/messages/' + ${conn.id}}" class="btn-action btn-outline-action">
+            <i class="fas fa-comment-alt"></i> Message
+          </a>
+          <button class="btn-action btn-danger-action" th:onclick="|removeConnection(${user.id}, ${conn.id}, this)|">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Followers -->
+    <div id="tab-followers" class="tab-panel">
+      <div class="section-header">
+        <h3 th:text="${#lists.size(followers)} + ' FOLLOWERS'"></h3>
+      </div>
+      <div th:if="${#lists.isEmpty(followers)}" class="empty-state">
+        <i class="fas fa-users" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+        <p>No followers yet.</p>
+      </div>
+      <div th:each="f : ${followers}" class="user-card animate-fade-in">
+        <div style="display:flex; align-items:center; flex:1; gap:1rem;">
+          <div class="user-avatar" th:text="${#strings.substring(f.username,0,1).toUpperCase()}">U</div>
+          <div class="user-info">
+            <a th:href="@{'/profile/' + ${f.username}}" class="user-name" th:text="${f.username}">Username</a>
+            <div class="user-meta" th:text="${f.role}">Role</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-primary-action" th:onclick="|followUser(${user.id}, ${f.id}, this)|">
+            Follow Back
+          </button>
+          <a th:href="@{'/profile/' + ${f.username}}" class="btn-action btn-outline-action">View</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Following -->
+    <div id="tab-following" class="tab-panel">
+      <div class="section-header">
+        <h3 th:text="'FOLLOWING ' + ${#lists.size(following)} + ' PEOPLE'"></h3>
+      </div>
+      <div th:if="${#lists.isEmpty(following)}" class="empty-state">
+        <i class="fas fa-user-check" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+        <p>You're not following anyone yet.</p>
+      </div>
+      <div th:each="f : ${following}" class="user-card animate-fade-in">
+        <div style="display:flex; align-items:center; flex:1; gap:1rem;">
+          <div class="user-avatar" th:text="${#strings.substring(f.username,0,1).toUpperCase()}">U</div>
+          <div class="user-info">
+            <a th:href="@{'/profile/' + ${f.username}}" class="user-name" th:text="${f.username}">Username</a>
+            <div class="user-meta" th:text="${f.role}">Role</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-danger-action" th:onclick="|unfollowUser(${user.id}, ${f.id}, this)|">
+            Unfollow
+          </button>
+          <a th:href="@{'/profile/' + ${f.username}}" class="btn-action btn-outline-action">View</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Pending -->
+    <div id="tab-pending" class="tab-panel">
+      <div class="section-header">
+        <h3 th:text="${#lists.size(pendingRequests)} + ' PENDING REQUESTS'"></h3>
+      </div>
+      <div th:if="${#lists.isEmpty(pendingRequests)}" class="empty-state">
+        <i class="fas fa-clock" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+        <p>No pending requests.</p>
+      </div>
+      <div th:each="req : ${pendingRequests}" class="user-card animate-fade-in">
+        <div style="display:flex; align-items:center; flex:1; gap:1rem;">
+          <div class="user-avatar" th:text="${#strings.substring(req.sender.username,0,1).toUpperCase()}">U</div>
+          <div class="user-info">
+            <a th:href="@{'/profile/' + ${req.sender.username}}" class="user-name"
+              th:text="${req.sender.username}">Username</a>
+            <div class="user-meta" th:text="${req.sender.role} + ' · Wants to connect'">Role</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-primary-action"
+            th:onclick="|acceptRequest(${user.id}, ${req.sender.id}, this)|">
+            Accept
+          </button>
+          <button class="btn-action btn-outline-action"
+            th:onclick="|rejectRequest(${user.id}, ${req.sender.id}, this)|">
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <i id="toast-icon" class="fas fa-check-circle" style="color:var(--primary);"></i>
+    <span id="toast-msg">Action completed!</span>
+  </div>
+
+  <script th:inline="javascript">
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function showToast(msg, success = true) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      document.getElementById('toast-msg').textContent = msg;
+      icon.className = success ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+      icon.style.color = success ? 'var(--primary)' : '#e53e3e';
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    function removeCard(btn) {
+      const card = btn.closest('.user-card');
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(10px)';
+      setTimeout(() => card.remove(), 300);
+    }
+
+    function acceptRequest(receiverId, senderId, btn) {
+      btn.disabled = true;
+      fetch(`/api/connections/accept?receiverId=${receiverId}&senderId=${senderId}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => { showToast('Connection accepted'); removeCard(btn); })
+        .catch(() => { btn.disabled = false; showToast('Error processing request', false); });
+    }
+
+    function rejectRequest(receiverId, senderId, btn) {
+      btn.disabled = true;
+      fetch(`/api/connections/reject?receiverId=${receiverId}&senderId=${senderId}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => { showToast('Request declined'); removeCard(btn); })
+        .catch(() => { btn.disabled = false; showToast('Error processing request', false); });
+    }
+
+    function removeConnection(userId1, userId2, btn) {
+      if (!confirm('Remove this connection?')) return;
+      btn.disabled = true;
+      fetch(`/api/connections/remove?userId1=${userId1}&userId2=${userId2}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => { showToast('Connection removed'); removeCard(btn); })
+        .catch(() => { btn.disabled = false; showToast('Error removing connection', false); });
+    }
+
+    function followUser(followerId, followingId, btn) {
+      btn.disabled = true;
+      fetch(`/api/follow/${followerId}/${followingId}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => {
+          btn.innerHTML = '<i class="fas fa-check"></i> Following';
+          btn.className = 'btn-action btn-outline-action';
+          showToast('Now following');
+        })
+        .catch(() => { btn.disabled = false; showToast('Error following user', false); });
+    }
+
+    function unfollowUser(followerId, followingId, btn) {
+      if (!confirm('Unfollow this user?')) return;
+      btn.disabled = true;
+      fetch(`/api/follow/unfollow/${followerId}/${followingId}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => { showToast('Unfollowed'); removeCard(btn); })
+        .catch(() => { btn.disabled = false; showToast('Error unfollowing user', false); });
+    }
+  </script>
+</body>
+
+</html>

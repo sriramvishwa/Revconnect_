@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+
+<style>
+  .notif-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .notif-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .notif-card {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .notif-card.unread {
+    border-left: 4px solid var(--primary);
+    background: #f0f7f8;
+  }
+
+  .notif-card:hover {
+    border-color: var(--primary);
+  }
+
+  .notif-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .notif-icon.like {
+    background: #fff5f7;
+    color: #ec4899;
+  }
+
+  .notif-icon.comment {
+    background: #f0f7f8;
+    color: var(--primary);
+  }
+
+  .notif-icon.connect {
+    background: #f0fff4;
+    color: #10b981;
+  }
+
+  .notif-icon.default {
+    background: #f8f9fa;
+    color: var(--text-secondary);
+  }
+
+  .mark-read-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mark-read-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+  }
+</style>
+
+<body class="animate-fade-in">
+  <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+  <div class="notif-container">
+    <div class="notif-header">
+      <h2><i class="fas fa-bell"></i> Notifications</h2>
+      <button th:if="${not #lists.isEmpty(notifications)}" onclick="markAllRead()" class="btn btn-outline"
+        style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+        <i class="fas fa-check-double"></i> Mark all read
+      </button>
+    </div>
+
+    <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
+      <i class="fas fa-calendar-check" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+      <p style="font-size:1rem; font-weight:600; color:var(--text-primary);">You're all caught up!</p>
+      <p style="margin-top:0.4rem;">Check back later for new updates.</p>
+    </div>
+
+    <div th:each="notif : ${notifications}" th:id="'notif-' + ${notif.id}" class="notif-card animate-fade-in"
+      th:classappend="${!notif.read ? ' unread' : ''}">
+
+      <div class="notif-icon"
+        th:classappend="${notif.type == 'LIKE' ? ' like' : (notif.type == 'COMMENT' ? ' comment' : (notif.type == 'CONNECTION_REQUEST' ? ' connect' : ' default'))}">
+        <i
+          th:class="${notif.type == 'LIKE' ? 'fas fa-heart' : (notif.type == 'COMMENT' ? 'fas fa-comment' : (notif.type == 'CONNECTION_REQUEST' ? 'fas fa-user-plus' : 'fas fa-bell'))}"></i>
+      </div>
+
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);" th:text="${notif.message}">
+          Notification</div>
+        <div style="color:var(--text-secondary); font-size:0.8rem; margin-top:0.25rem;"
+          th:text="${#temporals.format(notif.createdAt, 'MMM dd, HH:mm')}">Time</div>
+      </div>
+
+      <div class="notif-actions" style="margin-left: 1rem;">
+        <button th:if="${!notif.read}" class="mark-read-btn" th:onclick="|markRead(${notif.id}, this)|">
+          Mark Read
+        </button>
+        <span th:if="${notif.read}" style="color:var(--text-secondary); font-size:0.8rem;">Read</span>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    function markRead(id, btn) {
+      btn.disabled = true;
+      fetch(`/notifications/read/${id}`, { method: 'POST' })
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(() => {
+          const card = document.getElementById('notif-' + id);
+          card.classList.remove('unread');
+          btn.outerHTML = '<span style="color:var(--text-secondary); font-size:0.8rem;">Read</span>';
+        })
+        .catch(() => { btn.disabled = false; });
+    }
+    function markAllRead() {
+      if (!confirm('Mark all notifications as read?')) return;
+      fetch('/notifications/read-all', { method: 'POST' })
+        .then(r => r.ok ? location.reload() : Promise.reject());
+    }
+  </script>
+</body>
+
+</html>

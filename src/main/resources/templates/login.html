@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
+
+<style>
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        background-color: var(--bg-page);
+    }
+
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 1rem;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 400px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 2.5rem;
+    }
+
+    .auth-card h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        text-align: center;
+    }
+
+    .auth-card .subtext {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+    }
+
+    .btn-full {
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .error-box,
+    .success-box {
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-sm);
+        margin-bottom: 1.5rem;
+        font-size: 0.88rem;
+    }
+
+    .error-box {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        color: #c53030;
+    }
+
+    .success-box {
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #276749;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .auth-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .brand-link {
+        display: block;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-decoration: none;
+    }
+</style>
+
+<body class="animate-fade-in">
+
+    <div class="auth-card">
+        <a href="/" class="brand-link">RevConnect</a>
+
+        <h2>Login to RevConnect</h2>
+        <p class="subtext">Enter your credentials to continue</p>
+
+        <div th:if="${param.error}" class="error-box">
+            <i class="fas fa-exclamation-circle"></i> Invalid username or password.
+        </div>
+        <div th:if="${param.success}" class="success-box">
+            <i class="fas fa-check-circle"></i> Account created! You can now sign in.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" required placeholder="your_username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Don’t have an account? <a th:href="@{/register}">Register</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

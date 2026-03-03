@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Messages')}"></head>
+
+<style>
+    .msg-layout {
+        max-width: 1100px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        display: flex;
+        gap: 1.5rem;
+        height: calc(100vh - 120px);
+        min-height: 500px;
+    }
+
+    /* Conversation list */
+    .conv-panel {
+        width: 320px;
+        flex-shrink: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .conv-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .conv-list {
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .conv-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.2s;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .conv-item:last-child {
+        border-bottom: none;
+    }
+
+    .conv-item:hover {
+        background: #f8f9fa;
+    }
+
+    .conv-item.active {
+        background: #f0f7f8;
+        border-left: 4px solid var(--primary);
+    }
+
+    .conv-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-page);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+        border: 1px solid var(--border-color);
+        object-fit: cover;
+    }
+
+    .conv-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .conv-preview {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+    }
+
+    /* Chat panel */
+    .chat-panel {
+        flex: 1;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .chat-header-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: #fcfcfc;
+    }
+
+    .bubble-wrap {
+        display: flex;
+        flex-direction: column;
+        max-width: 75%;
+    }
+
+    .bubble-wrap.mine {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .bubble-wrap.theirs {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .bubble {
+        padding: 0.75rem 1.2rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        word-break: break-word;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .bubble.theirs {
+        background: #fff;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-bottom-left-radius: 2px;
+    }
+
+    .bubble.mine {
+        background: var(--primary);
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    .bubble-time {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-top: 0.4rem;
+    }
+
+    .chat-input-area {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        background: #fff;
+    }
+
+    .chat-form {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .chat-input {
+        flex: 1;
+        background: #fff;
+        border: 1.5px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        outline: none;
+        resize: none;
+        max-height: 120px;
+        transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+        border-color: var(--primary);
+    }
+
+    /* New chat search */
+    .new-chat-area {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        background: #f8f9fa;
+    }
+
+    .new-chat-input {
+        width: 100%;
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    .new-chat-input:focus {
+        border-color: var(--primary);
+    }
+
+    @media (max-width: 850px) {
+        .conv-panel {
+            width: 260px;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .conv-panel {
+            display: none;
+        }
+
+        .msg-layout {
+            margin: 1rem auto;
+            height: calc(100vh - 80px);
+        }
+    }
+</style>
+
+<body class="animate-fade-in">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="msg-layout">
+
+        <!-- Conversation sidebar -->
+        <div class="conv-panel">
+            <div class="conv-header">
+                <i class="fas fa-inbox text-primary"></i>
+                <span>Messages</span>
+            </div>
+
+            <div class="conv-list">
+                <div th:if="${conversations == null || conversations.isEmpty()}"
+                    style="text-align:center; padding:3rem 1.5rem; color:var(--text-secondary);">
+                    <i class="fas fa-comments"
+                        style="font-size:2rem; opacity:0.1; display:block; margin-bottom:1rem;"></i>
+                    <p style="font-size:0.9rem;">No active chats</p>
+                </div>
+
+                <a th:each="conv : ${conversations}" th:href="@{'/messages/' + ${conv.username}}" class="conv-item"
+                    th:classappend="${selectedUser != null && selectedUser.username == conv.username ? 'active' : ''}">
+
+                    <img th:if="${conv.profilePictureUrl != null && !conv.profilePictureUrl.isEmpty()}"
+                        th:src="${conv.profilePictureUrl}" class="conv-avatar" alt="">
+                    <div th:unless="${conv.profilePictureUrl != null && !conv.profilePictureUrl.isEmpty()}"
+                        class="conv-avatar" th:text="${#strings.substring(conv.username,0,1).toUpperCase()}">U</div>
+
+                    <div style="flex:1; min-width:0;">
+                        <div class="conv-name" th:text="${conv.username}">Username</div>
+                        <div class="conv-preview"
+                            th:text="${lastMessages != null && lastMessages[conv.username] != null ? lastMessages[conv.username] : 'Start messaging...'}">
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="new-chat-area">
+                <form th:action="@{/messages}" method="get" onsubmit="return redirectToUser(this)">
+                    <input class="new-chat-input" id="newUserInput" type="text"
+                        placeholder="Start new chat with username..." autocomplete="off">
+                </form>
+            </div>
+        </div>
+
+        <!-- Chat panel -->
+        <div class="chat-panel">
+            <!-- No conversation selected -->
+            <div th:if="${selectedUser == null}"
+                style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem;">
+                <div
+                    style="width:80px; height:80px; border-radius:50%; background:#f0f7f8; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem;">
+                    <i class="fas fa-paper-plane" style="font-size:2rem; color:var(--primary);"></i>
+                </div>
+                <h3 style="color:var(--text-primary); margin-bottom:0.5rem; font-weight:800;">Your Inbox</h3>
+                <p style="color:var(--text-secondary); max-width:280px; line-height:1.6;">Select a person from the list
+                    to start or continue a conversation.</p>
+            </div>
+
+            <!-- Conversation open -->
+            <div th:if="${selectedUser != null}" style="display:flex; flex-direction:column; height:100%;">
+                <div class="chat-header">
+                    <img th:if="${selectedUser.profilePictureUrl != null && !selectedUser.profilePictureUrl.isEmpty()}"
+                        th:src="${selectedUser.profilePictureUrl}" class="conv-avatar"
+                        style="width:40px; height:40px; margin:0;" alt="">
+                    <div th:unless="${selectedUser.profilePictureUrl != null && !selectedUser.profilePictureUrl.isEmpty()}"
+                        class="conv-avatar" style="width:40px; height:40px; margin:0;"
+                        th:text="${#strings.substring(selectedUser.username,0,1).toUpperCase()}">U</div>
+
+                    <div style="flex:1;">
+                        <div class="chat-header-name" th:text="${selectedUser.username}">Username</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary);"
+                            th:text="${selectedUser.role.name()}">Role</div>
+                    </div>
+
+                    <a th:href="@{'/profile/' + ${selectedUser.username}}" class="btn btn-outline"
+                        style="padding: 0.5rem 0.9rem; font-size: 0.8rem;">
+                        <i class="fas fa-user"></i> <span style="margin-left:0.4rem;">View Profile</span>
+                    </a>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div th:if="${thread.isEmpty()}"
+                        style="text-align:center; padding:3rem 1rem; color:var(--text-secondary);">
+                        <p>No messages yet. Say hi!</p>
+                    </div>
+
+                    <div th:each="msg : ${thread}" class="bubble-wrap"
+                        th:classappend="${msg.sender.username == user.username ? 'mine' : 'theirs'}">
+                        <div class="bubble" th:classappend="${msg.sender.username == user.username ? 'mine' : 'theirs'}"
+                            th:text="${msg.content}">Message</div>
+                        <div class="bubble-time" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">00:00</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <form th:action="@{'/messages/' + ${selectedUser.username}}" method="post" class="chat-form">
+                        <textarea class="chat-input" name="content" placeholder="Type your message..." rows="1"
+                            onkeydown="submitOnEnter(event, this.form)"></textarea>
+                        <button type="submit" class="btn btn-primary"
+                            style="width:45px; height:45px; padding:0; display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Auto-scroll chat to bottom
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        function submitOnEnter(e, form) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (form.content.value.trim()) form.submit();
+            }
+        }
+
+        function redirectToUser(form) {
+            const val = document.getElementById('newUserInput').value.trim();
+            if (val) { window.location.href = '/messages/' + val; }
+            return false;
+        }
+    </script>
+</body>
+
+</html>

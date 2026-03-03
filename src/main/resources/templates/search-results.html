@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Search Results')}"></head>
+
+<style>
+    .search-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .search-header {
+        margin-bottom: 2rem;
+    }
+
+    .search-header h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .search-tabs {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-tab {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .search-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .result-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--card-shadow);
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .result-card:hover {
+        border-color: var(--primary);
+    }
+
+    .user-result {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-info {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-sm);
+        background: var(--bg-page);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .user-details a {
+        color: var(--text-primary);
+        font-weight: 700;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .user-details span {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+    }
+
+    .post-author {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        margin-right: 0.5rem;
+    }
+
+    .post-date {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-search {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+</style>
+
+<body class="animate-fade-in">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <div class="search-container">
+        <div class="search-header">
+            <h2>Search results for "[[${param.q}]]"</h2>
+        </div>
+
+        <div class="search-tabs">
+            <button class="search-tab active">Top Results</button>
+            <button class="search-tab">People</button>
+            <button class="search-tab">Posts</button>
+        </div>
+
+        <!-- User Results -->
+        <div th:if="${type == 'USERS'}" class="results-list">
+            <div th:each="result : ${results}" class="result-card user-result animate-fade-in">
+                <div class="user-info">
+                    <div class="user-avatar" th:text="${#strings.substring(result.username, 0, 1).toUpperCase()}">U
+                    </div>
+                    <div class="user-details">
+                        <a th:href="@{'/profile/' + ${result.username}}" th:text="${result.username}">Username</a>
+                        <span th:text="${result.role}">Role</span>
+                    </div>
+                </div>
+
+                <form th:if="${currentUser != null and currentUser.id != result.id}"
+                    th:action="@{/api/connections/request}" method="post" onsubmit="handleConnect(event, this)">
+                    <input type="hidden" name="senderId" th:value="${currentUser.id}" />
+                    <input type="hidden" name="receiverId" th:value="${result.id}" />
+                    <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        Connect
+                    </button>
+                </form>
+            </div>
+
+            <div th:if="${#lists.isEmpty(results)}" class="empty-search">
+                <i class="fas fa-user-slash"
+                    style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+                <p>No people found matching your search.</p>
+            </div>
+        </div>
+
+        <!-- Post Results -->
+        <div th:if="${type == 'POSTS'}" class="results-list">
+            <div th:each="post : ${results}" class="result-card animate-fade-in">
+                <div style="margin-bottom: 0.75rem;">
+                    <span class="post-author" th:text="${post.author.username}">User</span>
+                    <span class="post-date" th:text="${#temporals.format(post.createdAt, 'MMM dd, yyyy')}">Date</span>
+                </div>
+                <div style="line-height:1.6; color:var(--text-primary);" th:text="${post.content}">Content</div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(results)}" class="empty-search">
+                <i class="fas fa-hashtag" style="font-size:3rem; opacity:0.1; display:block; margin-bottom:1.5rem;"></i>
+                <p>No posts found matching that criteria.</p>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function handleConnect(event, form) {
+            event.preventDefault();
+            const button = form.querySelector('button[type="submit"]');
+            const senderId = form.querySelector('[name="senderId"]').value;
+            const receiverId = form.querySelector('[name="receiverId"]').value;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            fetch(`/api/connections/request?senderId=${senderId}&receiverId=${receiverId}`, {
+                method: 'POST'
+            })
+                .then(res => res.ok ? res.text() : Promise.reject())
+                .then(() => {
+                    button.textContent = 'Requested';
+                    button.className = 'btn btn-outline';
+                    button.style.opacity = '0.7';
+                })
+                .catch(() => {
+                    button.textContent = 'Error';
+                    button.disabled = false;
+                });
+        }
+    </script>
+</body>
+
+</html>
